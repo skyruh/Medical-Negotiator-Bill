@@ -22,7 +22,7 @@ A web application that authenticates and parses medical bills using Google's Gem
 
 ### 1. Clone the Repository
 ```bash
-git clone <repository-url>
+git clone https://github.com/skyruh/Medical-Negotiator-Bill.git
 cd medical-bill-app
 ```
 
