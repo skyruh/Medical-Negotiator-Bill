@@ -1,0 +1,126 @@
+const { GoogleGenerativeAI } = require("@google/generative-ai");
+const { GoogleAIFileManager } = require("@google/generative-ai/server");
+const fs = require("fs");
+const path = require("path");
+
+const apiKey = process.env.GEMINI_API_KEY;
+const genAI = new GoogleGenerativeAI(apiKey);
+const fileManager = new GoogleAIFileManager(apiKey);
+
+const SYSTEM_PROMPT = `
+You are an expert medical bill analyzer performing ASSISTED document understanding.
+
+Your task:
+Extract structured data from the provided hospital medical bill.
+
+Return ONLY a valid JSON object following EXACTLY this schema:
+
+{
+  "patient_name": string | null,
+  "bill_date": string | null,
+  "total_amount": number | null,
+  "line_items": [
+    {
+      "code": string | null,
+      "description": string,
+      "normalized_name": string | null,
+      "category": "Room Rent" | "Procedure" | "Medication" | "Diagnostic" | "Consumable" | "Professional Fee" | "Equipment" | "Other",
+      "quantity": number | null,
+      "unit_price": number | null,
+      "total_price": number,
+      "confidence": "high" | "medium" | "low"
+    }
+  ]
+}
+
+STRICT RULES:
+1. DO NOT guess missing values. Use null instead.
+2. Ignore Subtotal, Grand Total, Balance Due, Amount Paid rows.
+3. Extract ONLY chargeable line items.
+4. If a row appears merged, unclear, or ambiguous, set confidence = "low".
+5. normalized_name should be a simplified medical term when possible (e.g., "cbc_test", "icu_day").
+6. total_price must always be numeric.
+7. If quantity or unit price is not explicitly visible, leave them null.
+8. Output ONLY JSON. No explanations, no markdown.
+`;
+
+async function extractDataWithGemini(filePath, mimeType) {
+    try {
+        console.log(`[GEMINI] Uploading file: ${filePath}`);
+
+        const uploadResult = await fileManager.uploadFile(filePath, {
+            mimeType: mimeType,
+            displayName: "Medical Bill",
+        });
+
+        console.log(`[GEMINI] File uploaded: ${uploadResult.file.uri}`);
+
+        // Wait for processing if video (not needed for images/pdf usually, but good practice)
+        let file = await fileManager.getFile(uploadResult.file.name);
+        while (file.state === "PROCESSING") {
+            await new Promise((resolve) => setTimeout(resolve, 1000));
+            file = await fileManager.getFile(uploadResult.file.name);
+        }
+
+        if (file.state === "FAILED") {
+            throw new Error("File processing failed.");
+        }
+
+        const model = genAI.getGenerativeModel({
+            model: "gemini-2.5-flash-lite",
+            generationConfig: {
+                responseMimeType: "application/json",
+                temperature: 0.1,
+            }
+        }); z
+
+        console.log("[GEMINI] Generating content...");
+        const result = await model.generateContent([
+            {
+                fileData: {
+                    mimeType: file.mimeType,
+                    fileUri: file.uri
+                }
+            },
+            { text: SYSTEM_PROMPT }
+        ]);
+
+        const response = await result.response;
+        const text = response.text();
+        console.log("[GEMINI] Response received");
+
+        // Clean and parse
+        let jsonStr = text.replace(/```json/g, "").replace(/```/g, "").trim();
+
+        // Safety fallback for JSON parsing
+        try {
+            return JSON.parse(jsonStr);
+        } catch (e) {
+            // Try to find the first { and last }
+            const start = jsonStr.indexOf("{");
+            const end = jsonStr.lastIndexOf("}");
+            if (start !== -1 && end !== -1) {
+                return JSON.parse(jsonStr.substring(start, end + 1));
+            }
+            throw e;
+        }
+
+    } catch (error) {
+        console.error("======================================");
+        console.error("[GEMINI ERROR] Analysis Failed");
+        console.error("Time:", new Date().toISOString());
+        console.error("File:", filePath);
+
+        if (error.status === 429 || (error.message && error.message.includes("429"))) {
+            console.error("ERROR TYPE: RATE LIMIT EXCEEDED (429)");
+            console.error("Suggestion: Wait for 30-60 seconds before retrying.");
+        } else {
+            console.error("Error Details:", error);
+        }
+        console.error("======================================");
+
+        throw error;
+    }
+}
+
+module.exports = { extractDataWithGemini };
