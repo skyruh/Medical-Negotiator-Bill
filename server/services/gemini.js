@@ -72,7 +72,7 @@ async function extractDataWithGemini(filePath, mimeType) {
                 responseMimeType: "application/json",
                 temperature: 0.1,
             }
-        }); z
+        });
 
         console.log("[GEMINI] Generating content...");
         const result = await model.generateContent([
@@ -115,7 +115,12 @@ async function extractDataWithGemini(filePath, mimeType) {
             console.error("ERROR TYPE: RATE LIMIT EXCEEDED (429)");
             console.error("Suggestion: Wait for 30-60 seconds before retrying.");
         } else {
-            console.error("Error Details:", error);
+            console.error("Error Message:", error.message);
+            if (error.status) console.error("Error Status:", error.status);
+            if (error.statusText) console.error("Error StatusText:", error.statusText);
+            if (error.errorDetails) console.error("Error Details:", JSON.stringify(error.errorDetails, null, 2));
+            // Log full error object for granular details including 'cause'
+            console.error("Full Error Object:", JSON.stringify(error, Object.getOwnPropertyNames(error), 2));
         }
         console.error("======================================");
 

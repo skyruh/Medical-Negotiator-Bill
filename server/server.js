@@ -44,7 +44,12 @@ const performAnalysis = (extractedData) => {
 
     if (extractedData.line_items) {
         extractedData.line_items.forEach(item => {
-            const cghsMatch = findRate(item.code, item.normalized_name || item.description);
+            // Try matching with normalized_name first, then description
+            let cghsMatch = findRate(item.code, item.normalized_name);
+            if (!cghsMatch && item.description && item.description !== item.normalized_name) {
+                console.log(`[Analysis] Fallback match using description for: ${item.description}`);
+                cghsMatch = findRate(item.code, item.description);
+            }
 
             let cghsRate = null;
             let status = "Not Found";

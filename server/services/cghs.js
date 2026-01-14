@@ -67,7 +67,7 @@ function findRate(itemCode, itemName) {
 
     if (!itemName) return null;
 
-    const normalizedItem = itemName.toLowerCase().trim();
+    const normalizedItem = itemName.toLowerCase().replace(/\s+/g, ' ').replace(/[.]+$/, '').trim();
 
     // 2. Exact Name Match (substring check as naive heuristic can be dangerous, strict equality preferred for "Exact", but "includes" is safer for partial titles)
     // Let's stick to the previous "includes" heuristic but prioritize it after code.
