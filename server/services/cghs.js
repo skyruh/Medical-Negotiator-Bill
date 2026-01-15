@@ -55,59 +55,105 @@ function levenshtein(a, b) {
     return matrix[b.length][a.length];
 }
 
-function findRate(itemCode, itemName) {
+const TIER_1_CITIES = [
+    "Delhi", "Mumbai", "Kolkata", "Chennai", "Bengaluru", "Hyderabad", "Pune", "Ahmedabad"
+];
+
+const TIER_2_CITIES = [
+    "Agra", "Ajmer", "Allahabad", "Amritsar", "Aurangabad", "Bareilly", "Bhopal", "Bhubaneswar",
+    "Chandigarh", "Coimbatore", "Dehradun", "Dhanbad", "Faridabad", "Ghaziabad", "Gurugram",
+    "Guwahati", "Gwalior", "Indore", "Jabalpur", "Jaipur", "Jalandhar", "Jammu", "Jodhpur",
+    "Kanpur", "Kochi", "Kozhikode", "Lucknow", "Ludhiana", "Madurai", "Meerut", "Moradabad",
+    "Mysuru", "Nagpur", "Noida", "Patna", "Raipur", "Ranchi", "Shimla", "Siliguri", "Srinagar",
+    "Surat", "Thiruvananthapuram", "Thrissur", "Trichy", "Udaipur", "Vadodara", "Varanasi",
+    "Vijayawada", "Visakhapatnam"
+];
+
+function getCityTierMultiplier(city) {
+    if (!city) return 1.0; // Default to Tier 1 if no city provided
+
+    // Normalize city name for comparison
+    const normalizedCity = city.trim();
+    // Case-insensitive check could be added if needed, but lists are Title Case.
+    // Let's use exact match for now as per list, but maybe ignore case?
+    // Safety:
+    const cityLower = normalizedCity.toLowerCase();
+
+    if (TIER_1_CITIES.some(c => c.toLowerCase() === cityLower)) {
+        return 1.0;
+    }
+    if (TIER_2_CITIES.some(c => c.toLowerCase() === cityLower)) {
+        return 0.9;
+    }
+    // Tier 3 Rule: Any CGHS-covered city not in Tier 1 or Tier 2
+    return 0.8;
+}
+
+function findRate(itemCode, itemName, city) {
     if (!itemCode && !itemName) return null;
     if (cghsRates.length === 0) return null;
 
+    let baseMatch = null;
+
     // 1. Try Code Match
     if (itemCode) {
-        const codeMatch = cghsRates.find(r => r.code && r.code.toLowerCase() === itemCode.toLowerCase());
-        if (codeMatch) return codeMatch;
+        baseMatch = cghsRates.find(r => r.code && r.code.toLowerCase() === itemCode.toLowerCase());
     }
 
-    if (!itemName) return null;
+    // 2. Try Name Match if no Code Match
+    if (!baseMatch && itemName) {
+        const normalizedItem = itemName.toLowerCase().replace(/\s+/g, ' ').replace(/[.]+$/, '').trim();
 
-    const normalizedItem = itemName.toLowerCase().replace(/\s+/g, ' ').replace(/[.]+$/, '').trim();
+        // Bidirectional Substring Match
+        const substringMatches = cghsRates.filter(r => {
+            const rateName = r.name.toLowerCase();
+            return normalizedItem.includes(rateName) || rateName.includes(normalizedItem);
+        });
 
-    // 2. Bidirectional Substring Match
-    // Matches if "CBC" is in "Complete Haemogram/CBC" OR "Complete Haemogram/CBC" is in "CBC" (unlikely)
-    // We prioritize the longest matching rate name to avoid matching "Blood" to "Blood Sugar"
-    const substringMatches = cghsRates.filter(r => {
-        const rateName = r.name.toLowerCase();
-        return normalizedItem.includes(rateName) || rateName.includes(normalizedItem);
-    });
+        if (substringMatches.length > 0) {
+            substringMatches.sort((a, b) => b.name.length - a.name.length);
+            baseMatch = substringMatches[0];
+        }
 
-    if (substringMatches.length > 0) {
-        // Sort by length - longest match is usually the most specific and correct one
-        substringMatches.sort((a, b) => b.name.length - a.name.length);
-        return substringMatches[0];
-    }
+        // Fuzzy Name Match Fallback
+        if (!baseMatch) {
+            let bestFuzzyMatch = null;
+            let minDistance = Infinity;
+            const threshold = 5;
 
-    // 3. Fuzzy Name Match
-    let bestMatch = null;
-    let minDistance = Infinity;
-    const threshold = 5;
+            for (const rate of cghsRates) {
+                const rateName = rate.name.toLowerCase();
+                if (Math.abs(rateName.length - normalizedItem.length) > 10) continue;
 
-    for (const rate of cghsRates) {
-        const rateName = rate.name.toLowerCase();
-        // Skip completely different length strings to save time
-        if (Math.abs(rateName.length - normalizedItem.length) > 10) continue;
+                const dist = levenshtein(normalizedItem, rateName);
+                if (dist < minDistance) {
+                    minDistance = dist;
+                    bestFuzzyMatch = rate;
+                }
+            }
 
-        const dist = levenshtein(normalizedItem, rateName);
-        if (dist < minDistance) {
-            minDistance = dist;
-            bestMatch = rate;
+            if (minDistance <= threshold) {
+                baseMatch = bestFuzzyMatch;
+            }
         }
     }
 
-    if (minDistance <= threshold) {
-        return bestMatch;
-    }
+    if (!baseMatch) return null;
 
-    return null;
+    // Apply Tier Logic
+    const multiplier = getCityTierMultiplier(city);
+
+    // Clone the object to avoid mutating the global list and return adjusted rate
+    return {
+        ...baseMatch,
+        rate: Math.round(baseMatch.rate * multiplier), // Round to nearest integer standard
+        original_rate: baseMatch.rate,
+        tier_multiplier: multiplier,
+        tier_city: city || "Default (Tier 1)"
+    };
 }
 
 // Initialize on load
 loadRates();
 
-module.exports = { findRate, loadRates };
+module.exports = { findRate, loadRates, TIER_1_CITIES, TIER_2_CITIES };

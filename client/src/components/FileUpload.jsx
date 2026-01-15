@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 
-const FileUpload = ({ onUploadStart, onUploadSuccess, onError }) => {
+const FileUpload = ({ onUploadStart, onUploadSuccess, onError, city }) => {
     const [dragActive, setDragActive] = useState(false);
     const inputRef = useRef(null);
 
@@ -45,6 +45,7 @@ const FileUpload = ({ onUploadStart, onUploadSuccess, onError }) => {
 
         const formData = new FormData();
         formData.append('bill', file);
+        formData.append('city', city); // Send selected city
 
         try {
             const response = await fetch('/api/analyze', {

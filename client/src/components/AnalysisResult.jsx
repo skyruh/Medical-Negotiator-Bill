@@ -1,4 +1,18 @@
 import React, { useState, useEffect } from 'react';
+import { CITIES } from '../constants'; // Assumes constants is in parent src folder, adjusting path below if needed
+
+// Helper to determine Tier for display only (duplicate logic from backend effectively, or just simple check)
+// Since we don't have the TIER lists exposed to frontend easily without duplicating, let's just do a rough check or rely on metadata if we improved backend.
+// Backend sends tier_multiplier but not "Tier 1".
+// Let's implement a simple display helper.
+const getTierFromCity = (city) => {
+    // Quick heuristic based on the arrays we know.
+    // Ideally this comes from a shared config or backend.
+    const TIER_1 = ["Delhi", "Mumbai", "Kolkata", "Chennai", "Bengaluru", "Hyderabad", "Pune", "Ahmedabad"];
+    if (TIER_1.includes(city)) return "1";
+    if (city === "Other/Remote (Tier 3)") return "3";
+    return "2";
+};
 
 const AnalysisResult = ({ data, onReset }) => {
     // Determine initial state
@@ -12,7 +26,7 @@ const AnalysisResult = ({ data, onReset }) => {
         setResultData(data);
     }, [data]);
 
-    // Initialize edited items when entering edit mode or when data changes
+    // ... rest of code
     useEffect(() => {
         if (resultData && resultData.comparison) {
             setEditedItems(resultData.comparison.items.map(item => ({
@@ -67,6 +81,7 @@ const AnalysisResult = ({ data, onReset }) => {
 
             const payload = {
                 ...resultData,
+                city: resultData.metadata?.city || "Delhi", // Ensure city is passed for re-analysis
                 total_amount: newTotal,
                 line_items: editedItems.map(item => ({
                     ...item,
@@ -74,7 +89,7 @@ const AnalysisResult = ({ data, onReset }) => {
                 }))
             };
 
-            const response = await fetch('http://localhost:3000/api/reanalyze', {
+            const response = await fetch('/api/reanalyze', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -98,10 +113,18 @@ const AnalysisResult = ({ data, onReset }) => {
         }
     };
 
-    const { comparison } = resultData;
+    const { comparison, metadata } = resultData;
 
     return (
         <div className="container">
+            {metadata && metadata.city && (
+                <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
+                    <span className="badge badge-neutral" style={{ fontSize: '0.9rem', padding: '0.5rem 1rem' }}>
+                        🏙️ Rates for City: <strong>{metadata.city}</strong> (Tier {getTierFromCity(metadata.city)})
+                    </span>
+                </div>
+            )}
+
             <div className="stats-grid">
                 <div className="stat-card">
                     <div className="stat-label">Total Bill Amount</div>

@@ -31,7 +31,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
-const performAnalysis = (extractedData) => {
+const performAnalysis = (extractedData, city) => {
     const analysis = {
         ...extractedData,
         comparison: {
@@ -39,16 +39,22 @@ const performAnalysis = (extractedData) => {
             cghs_total_amount: 0,
             total_overpaid: 0,
             items: []
+        },
+        metadata: {
+            city: city, // Include city in response for debugging/UI
+            tier_multiplier: 1.0 // Placeholder
         }
     };
 
     if (extractedData.line_items) {
         extractedData.line_items.forEach(item => {
-            // Try matching with normalized_name first, then description
-            let cghsMatch = findRate(item.code, item.normalized_name);
+            // Pass CITY to findRate
+            let cghsMatch = findRate(item.code, item.normalized_name, city);
+
+            // Fallback match using description
             if (!cghsMatch && item.description && item.description !== item.normalized_name) {
                 console.log(`[Analysis] Fallback match using description for: ${item.description}`);
-                cghsMatch = findRate(item.code, item.description);
+                cghsMatch = findRate(item.code, item.description, city);
             }
 
             let cghsRate = null;
@@ -113,7 +119,8 @@ app.post("/api/analyze", upload.single("bill"), async (req, res) => {
         const extractedData = await extractDataWithGemini(filePath, req.file.mimetype);
 
         // 2. Compare with CGHS Rates
-        const analysis = performAnalysis(extractedData);
+        const city = req.body.city || "Delhi"; // Default to Delhi (Tier 1) if unspecified
+        const analysis = performAnalysis(extractedData, city);
 
         // Cleanup file
         fs.unlink(filePath, (err) => {
@@ -144,8 +151,8 @@ app.post("/api/analyze", upload.single("bill"), async (req, res) => {
 
 app.post("/api/reanalyze", async (req, res) => {
     try {
-        const { line_items, total_amount, ...otherData } = req.body;
-        console.log("Re-analyzing data...");
+        const { line_items, total_amount, city, ...otherData } = req.body;
+        console.log("Re-analyzing data..." + (city ? ` for city: ${city}` : ""));
 
         // Construct the data object expected by performAnalysis
         // We ensure numerical values are actually numbers
@@ -159,7 +166,7 @@ app.post("/api/reanalyze", async (req, res) => {
             ...otherData
         };
 
-        const analysis = performAnalysis(inputData);
+        const analysis = performAnalysis(inputData, city);
         res.json(analysis);
 
     } catch (error) {
