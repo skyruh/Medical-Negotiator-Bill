@@ -113,7 +113,7 @@ Built with ❤️ for better healthcare transparency.
 *   [gauranshi1707](https://github.com/gauranshi1707) - **Frontend Architect** 🎨
 *   [VanshikaTiwari11](https://github.com/VanshikaTiwari11) - **UI/UX Designer** ✨
 *   [codewithsuhanii](https://github.com/codewithsuhanii) - **Backend Specialist** ⚙️
-*   [YOUR_NAME_HERE](https://github.com/yourusername) - **Research & QA** 🔍
+*   [07arnavjain-collab](https://github.com/07arnavjain-collab) - **Research & QA** 🔍
 
 ---
 <div align="center">
