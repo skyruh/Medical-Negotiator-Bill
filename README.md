@@ -58,7 +58,7 @@ Follow these steps to get MedBill AI running locally in minutes!
 
 ### 1. Clone the Repo
 ```bash
-git clone https://github.com/skyruh/Medical-Negotiator-Bill.git
+git clone https://github.com/skyruh/Medical-Negotiator-Bill
 cd medical-bill-app
 ```
 
