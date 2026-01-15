@@ -123,37 +123,56 @@ app.post("/api/analyze", upload.single("bill"), async (req, res) => {
 
     const filePath = req.file.path;
 
+    // Enable Streaming Response
+    res.setHeader('Content-Type', 'application/x-ndjson');
+    res.setHeader('Transfer-Encoding', 'chunked');
+
+    const sendUpdate = (msg) => {
+        res.write(JSON.stringify({ type: 'progress', message: msg }) + "\n");
+    };
+
     try {
         console.log(`Analyzing file: ${req.file.originalname}`);
 
-        // 1. Extract data using Gemini
+        // Step 1: Notify start
+        sendUpdate("📤 Upload Successful. Starting AI Analysis...");
+
+        // Delay slightly so user sees the message (optional, but good for UX)
+        await new Promise(r => setTimeout(r, 500));
+
+        // Step 2: Extract data
+        sendUpdate("🤖 AI Extracting Medical Data...");
         const extractedData = await extractDataWithGemini(filePath, req.file.mimetype);
 
-        // 2. Compare with CGHS Rates
-        const city = req.body.city || "Delhi"; // Default to Delhi (Tier 1) if unspecified
+        // Step 3: Notify Comparison
+        const city = req.body.city || "Delhi";
+        sendUpdate(`🔍 Comparing against ${city} CGHS Rates...`);
+
+        // Step 4: Compare
         const analysis = performAnalysis(extractedData, city);
+
+        // Step 5: Send Final Result
+        res.write(JSON.stringify({ type: 'complete', data: analysis }) + "\n");
+        res.end(); // Close stream
 
         // Cleanup file
         fs.unlink(filePath, (err) => {
             if (err) console.error("Error deleting file:", err);
         });
 
-        res.json(analysis);
-
     } catch (error) {
         console.error("Analysis failed:", error.message);
 
-        // Handle Rate Limiting specifically
-        if (error.message.includes("429") || error.status === 429) {
-            return res.status(429).json({
-                error: "System Busy (Rate Limit)",
-                details: "We received too many requests. Please wait 30 seconds and try again."
-            });
-        }
+        // If headers not sent, we can send JSON error. 
+        // If stream started, we must send event error.
+        const errorMsg = error.message.includes("429")
+            ? "System Busy (Rate Limit). Please wait."
+            : "Analysis failed. Please try again.";
 
-        res.status(500).json({ error: "Analysis failed", details: error.message });
+        res.write(JSON.stringify({ type: 'error', error: errorMsg }) + "\n");
+        res.end();
 
-        // Try cleanup even on error
+        // Cleanup even on error
         if (filePath && fs.existsSync(filePath)) {
             fs.unlink(filePath, () => { });
         }

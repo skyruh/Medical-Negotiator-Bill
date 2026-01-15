@@ -150,19 +150,47 @@ const AnalysisResult = ({ data, onReset }) => {
                 </div>
             )}
 
-            <div className="stats-grid">
-                <div className="stat-card">
-                    <div className="stat-label">Total Bill Amount</div>
-                    <div className="stat-value">{formatCurrency(comparison.total_bill_amount)}</div>
-                </div>
-                <div className="stat-card">
-                    <div className="stat-label">Fair Bill Amount</div>
-                    <div className="stat-value">{formatCurrency(comparison.total_fair_amount || comparison.cghs_total_amount)}</div>
-                </div>
-                <div className="stat-card" style={{ borderColor: comparison.total_overpaid > 0 ? '#ef4444' : '#10b981' }}>
-                    <div className="stat-label">Potential Overpayment</div>
-                    <div className="stat-value" style={{ color: comparison.total_overpaid > 0 ? '#ef4444' : '#10b981' }}>
-                        {formatCurrency(comparison.total_overpaid)}
+            {/* VISUAL SAVINGS DASHBOARD */}
+            <div className="card" style={{ marginBottom: '2rem', background: 'white' }}>
+                <h3 style={{ marginTop: 0, color: '#64748b' }}>💰 Savings Analysis</h3>
+
+                <div style={{ display: 'flex', alignItems: 'flex-end', gap: '2rem', marginTop: '1rem', flexWrap: 'wrap' }}>
+                    {/* CHART */}
+                    <div style={{ flex: 2, minWidth: '300px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: '600', color: '#475569' }}>
+                            <span>Fair Price</span>
+                            <span>Total Bill</span>
+                        </div>
+                        <div style={{ width: '100%', height: '40px', background: '#fee2e2', borderRadius: '20px', position: 'relative', overflow: 'hidden' }}>
+                            {/* Green Bar (Fair Price) */}
+                            <div style={{
+                                width: `${Math.min(((comparison.total_fair_amount || comparison.cghs_total_amount) / comparison.total_bill_amount) * 100, 100)}%`,
+                                height: '100%',
+                                background: 'var(--secondary-gradient)',
+                                borderRadius: '20px',
+                                transition: 'width 1s ease-out'
+                            }}></div>
+
+                            {/* Tooltip for Red Area */}
+                            <div style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', color: '#b91c1c', fontWeight: '700', fontSize: '0.9rem' }}>
+                                +{formatCurrency(comparison.total_overpaid)} Extra
+                            </div>
+                        </div>
+                        <p style={{ marginTop: '0.8rem', fontSize: '0.9rem', color: '#64748b' }}>
+                            You are paying <strong style={{ color: '#ef4444' }}>{((comparison.total_overpaid / comparison.total_fair_amount) * 100).toFixed(0)}% more</strong> than the standard government rate.
+                        </p>
+                    </div>
+
+                    {/* KEY STATS */}
+                    <div style={{ flex: 1, display: 'flex', gap: '1rem', justifyContent: 'space-around' }}>
+                        <div style={{ textAlign: 'center' }}>
+                            <div className="stat-label">Total Bill</div>
+                            <div style={{ fontSize: '1.5rem', fontWeight: '700', color: '#1f2937' }}>{formatCurrency(comparison.total_bill_amount)}</div>
+                        </div>
+                        <div style={{ textAlign: 'center' }}>
+                            <div className="stat-label">You Should Pay</div>
+                            <div style={{ fontSize: '1.8rem', fontWeight: '800', color: '#10b981' }}>{formatCurrency(comparison.total_fair_amount || comparison.cghs_total_amount)}</div>
+                        </div>
                     </div>
                 </div>
             </div>

@@ -6,6 +6,7 @@ import './index.css';
 
 function App() {
   const [loading, setLoading] = useState(false);
+  const [loadingStage, setLoadingStage] = useState(""); // State for progress text
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
   const [city, setCity] = useState("Delhi"); // Default city
@@ -13,6 +14,11 @@ function App() {
   const handleUploadStart = () => {
     setLoading(true);
     setError(null);
+    setLoadingStage("Starting Upload...");
+  };
+
+  const handleProgress = (msg) => {
+    setLoadingStage(msg);
   };
 
   const handleUploadSuccess = (data) => {
@@ -44,10 +50,21 @@ function App() {
       )}
 
       {loading ? (
-        <div className="card" style={{ textAlign: 'center', padding: '4rem' }}>
-          <div className="loader"></div>
-          <p style={{ marginTop: '1rem', fontSize: '1.2rem' }}>Analyzing your bill with AI...</p>
-          <p style={{ color: '#6b7280' }}>Testing against rates for <strong>{city}</strong></p>
+        <div className="scan-container">
+          <div className="scan-box">
+            <div className="scan-line"></div>
+            <div className="scan-content-mock">
+              <div className="line-mock"></div>
+              <div className="line-mock short"></div>
+              <div className="line-mock"></div>
+              <div className="line-mock"></div>
+              <div className="line-mock short"></div>
+              <div className="line-mock"></div>
+            </div>
+          </div>
+          <div className="loading-text">
+            {loadingStage}
+          </div>
         </div>
       ) : result ? (
         <AnalysisResult data={result} onReset={handleReset} />
@@ -77,6 +94,7 @@ function App() {
 
           <FileUpload
             city={city} // Pass city prop
+            onProgress={handleProgress}
             onUploadStart={handleUploadStart}
             onUploadSuccess={handleUploadSuccess}
             onError={handleError}

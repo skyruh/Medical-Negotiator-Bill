@@ -1,9 +1,12 @@
 import React, { useState, useRef } from 'react';
 
-const FileUpload = ({ onUploadStart, onUploadSuccess, onError, city }) => {
+const FileUpload = ({ onUploadStart, onUploadSuccess, onError, onProgress, city }) => {
+    // ... (keep existing state/refs)
     const [dragActive, setDragActive] = useState(false);
     const inputRef = useRef(null);
+    // ...
 
+    // ... (keep handlers)
     const handleDrag = (e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -45,7 +48,7 @@ const FileUpload = ({ onUploadStart, onUploadSuccess, onError, city }) => {
 
         const formData = new FormData();
         formData.append('bill', file);
-        formData.append('city', city); // Send selected city
+        formData.append('city', city);
 
         try {
             const response = await fetch('/api/analyze', {
@@ -53,15 +56,40 @@ const FileUpload = ({ onUploadStart, onUploadSuccess, onError, city }) => {
                 body: formData,
             });
 
-            if (!response.ok) {
-                throw new Error('Analysis failed');
-            }
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let buffer = '';
 
-            const data = await response.json();
-            onUploadSuccess(data);
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+
+                buffer += decoder.decode(value, { stream: true });
+                const lines = buffer.split('\n');
+
+                // Process all complete lines
+                buffer = lines.pop(); // Keep the last partial line in buffer
+
+                for (const line of lines) {
+                    if (!line.trim()) continue;
+                    try {
+                        const event = JSON.parse(line);
+
+                        if (event.type === 'progress') {
+                            if (onProgress) onProgress(event.message);
+                        } else if (event.type === 'complete') {
+                            onUploadSuccess(event.data);
+                        } else if (event.type === 'error') {
+                            throw new Error(event.error);
+                        }
+                    } catch (e) {
+                        console.error("Error parsing stream line:", e);
+                    }
+                }
+            }
         } catch (error) {
             console.error(error);
-            onError("Failed to analyze file. Please try again.");
+            onError(error.message || "Failed to analyze file. Please try again.");
         }
     };
 
