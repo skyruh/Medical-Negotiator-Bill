@@ -118,29 +118,37 @@ function findRate(itemCode, itemName, city) {
             // Sort by length - longest match is usually the most specific and correct one
             substringMatches.sort((a, b) => b.name.length - a.name.length);
             baseMatch = substringMatches[0];
-            console.log(`[CGHS Match] Substring Match: "${normalizedItem}" matched "${baseMatch.name}"`);
         }
 
         // Fuzzy Name Match Fallback
         if (!baseMatch) {
             let bestFuzzyMatch = null;
             let minDistance = Infinity;
-            const threshold = 5;
+
+            // Stricter Thresholds
+            const MAX_DISTANCE_ABS = 3; // Absolute max distance allowed (was 5)
+            const MAX_DISTANCE_PCT = 0.4; // Max distance as % of length (e.g. 3 chars diff in 10 char string)
 
             for (const rate of cghsRates) {
                 const rateName = rate.name.toLowerCase();
                 if (Math.abs(rateName.length - normalizedItem.length) > 10) continue;
 
                 const dist = levenshtein(normalizedItem, rateName);
+
                 if (dist < minDistance) {
                     minDistance = dist;
                     bestFuzzyMatch = rate;
                 }
             }
 
-            if (minDistance <= threshold) {
-                baseMatch = bestFuzzyMatch;
-                console.log(`[CGHS Match] Fuzzy Match: "${normalizedItem}" matched "${baseMatch.name}" (Dist: ${minDistance})`);
+            // Apply strict checks
+            if (minDistance <= MAX_DISTANCE_ABS) {
+                const length = Math.max(normalizedItem.length, bestFuzzyMatch.name.length);
+                const ratio = minDistance / length;
+
+                if (ratio <= MAX_DISTANCE_PCT) {
+                    baseMatch = bestFuzzyMatch;
+                }
             }
         }
     }

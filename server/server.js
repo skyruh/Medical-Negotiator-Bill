@@ -36,7 +36,8 @@ const performAnalysis = (extractedData, city) => {
         ...extractedData,
         comparison: {
             total_bill_amount: extractedData.total_amount,
-            cghs_total_amount: 0,
+            cghs_total_amount: 0, // Deprecated conceptually, will now represent "Sum of Rates"
+            total_fair_amount: 0, // NEW: The amount the user SHOULD pay
             total_overpaid: 0,
             items: []
         },
@@ -60,6 +61,7 @@ const performAnalysis = (extractedData, city) => {
             let cghsRate = null;
             let status = "Not Found";
             let variance = 0;
+            let fairPrice = 0; // Price specific to this item
 
             if (cghsMatch) {
                 // FORCE NUMERIC CONVERSION to avoid string comparison bugs
@@ -67,6 +69,11 @@ const performAnalysis = (extractedData, city) => {
 
                 // Ensure item price is also a number
                 const itemPrice = Number(item.total_price);
+
+                // Use the LOWER of the two prices as the "Fair Price"
+                // If Bill is 400 and Rate is 800, Fair is 400.
+                // If Bill is 800 and Rate is 560, Fair is 560.
+                fairPrice = Math.min(itemPrice, cghsRate);
 
                 if (itemPrice > cghsRate) {
                     variance = itemPrice - cghsRate;
@@ -79,12 +86,16 @@ const performAnalysis = (extractedData, city) => {
                 analysis.comparison.cghs_total_amount += cghsRate;
 
             } else {
-                // Not Found
+                // Not Found => Fair Price is the Bill Price (we assume it's allowed if no rate found)
+                // Or should we flag it? Current logic accepted it.
                 cghsRate = Number(item.total_price);
+                fairPrice = cghsRate;
                 status = "Not Found (Allowed)";
                 variance = 0;
                 analysis.comparison.cghs_total_amount += cghsRate;
             }
+
+            analysis.comparison.total_fair_amount += fairPrice;
 
             analysis.comparison.items.push({
                 code: item.code,

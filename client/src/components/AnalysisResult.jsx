@@ -19,6 +19,7 @@ const AnalysisResult = ({ data, onReset }) => {
     const [resultData, setResultData] = useState(data);
     const [isEditing, setIsEditing] = useState(false);
     const [editedItems, setEditedItems] = useState([]);
+    const [editedCity, setEditedCity] = useState("Delhi"); // Init state for editing city
     const [totalDiff, setTotalDiff] = useState(0); // Difference between sum of items and extracted total
     const [isRecalculating, setIsRecalculating] = useState(false);
 
@@ -26,13 +27,18 @@ const AnalysisResult = ({ data, onReset }) => {
         setResultData(data);
     }, [data]);
 
-    // ... rest of code
+    // Initialize edited items and city when data changes or entering edit mode
     useEffect(() => {
-        if (resultData && resultData.comparison) {
-            setEditedItems(resultData.comparison.items.map(item => ({
-                ...item,
-                bill_price: item.bill_price || 0
-            })));
+        if (resultData) {
+            if (resultData.comparison) {
+                setEditedItems(resultData.comparison.items.map(item => ({
+                    ...item,
+                    bill_price: item.bill_price || 0
+                })));
+            }
+            if (resultData.metadata?.city) {
+                setEditedCity(resultData.metadata.city);
+            }
         }
     }, [resultData]);
 
@@ -81,7 +87,7 @@ const AnalysisResult = ({ data, onReset }) => {
 
             const payload = {
                 ...resultData,
-                city: resultData.metadata?.city || "Delhi", // Ensure city is passed for re-analysis
+                city: editedCity, // Use the EDITABLE city, not the old one
                 total_amount: newTotal,
                 line_items: editedItems.map(item => ({
                     ...item,
@@ -117,11 +123,30 @@ const AnalysisResult = ({ data, onReset }) => {
 
     return (
         <div className="container">
-            {metadata && metadata.city && (
+            {/* Show badge in view mode, Dropdown in edit mode */}
+            {!isEditing ? (
+                metadata && metadata.city && (
+                    <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
+                        <span className="badge badge-neutral" style={{ fontSize: '0.9rem', padding: '0.5rem 1rem' }}>
+                            🏙️ Rates for City: <strong>{metadata.city}</strong> (Tier {getTierFromCity(metadata.city)})
+                        </span>
+                    </div>
+                )
+            ) : (
                 <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
-                    <span className="badge badge-neutral" style={{ fontSize: '0.9rem', padding: '0.5rem 1rem' }}>
-                        🏙️ Rates for City: <strong>{metadata.city}</strong> (Tier {getTierFromCity(metadata.city)})
-                    </span>
+                    <label style={{ marginRight: '0.5rem', fontWeight: 'bold' }}>Update City:</label>
+                    <select
+                        value={editedCity}
+                        onChange={(e) => setEditedCity(e.target.value)}
+                        style={{
+                            padding: '0.5rem',
+                            borderRadius: '0.25rem',
+                            border: '1px solid #d1d5db',
+                            fontSize: '0.9rem'
+                        }}
+                    >
+                        {CITIES.map(c => <option key={c} value={c}>{c}</option>)}
+                    </select>
                 </div>
             )}
 
@@ -131,8 +156,8 @@ const AnalysisResult = ({ data, onReset }) => {
                     <div className="stat-value">{formatCurrency(comparison.total_bill_amount)}</div>
                 </div>
                 <div className="stat-card">
-                    <div className="stat-label">CGHS Estimated Total</div>
-                    <div className="stat-value">{formatCurrency(comparison.cghs_total_amount)}</div>
+                    <div className="stat-label">Fair Bill Amount</div>
+                    <div className="stat-value">{formatCurrency(comparison.total_fair_amount || comparison.cghs_total_amount)}</div>
                 </div>
                 <div className="stat-card" style={{ borderColor: comparison.total_overpaid > 0 ? '#ef4444' : '#10b981' }}>
                     <div className="stat-label">Potential Overpayment</div>
