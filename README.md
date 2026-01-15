@@ -111,8 +111,8 @@ Built with ❤️ for better healthcare transparency.
 
 *   [Skyruh](https://github.com/skyruh) - **Project Lead & AI Engineer** 🧠
 *   [gauranshi1707](https://github.com/gauranshi1707) - **Frontend Architect** 🎨
-*   [VanshikaTiwari11](https://github.com/VanshikaTiwari11) - **Backend Specialist** ⚙️
-*   [codewithsuhanii](https://github.com/codewithsuhanii) - **UI/UX Designer** ✨
+*   [VanshikaTiwari11](https://github.com/VanshikaTiwari11) - **UI/UX Designer** ✨
+*   [codewithsuhanii](https://github.com/codewithsuhanii) - **Backend Specialist** ⚙️
 *   [YOUR_NAME_HERE](https://github.com/yourusername) - **Research & QA** 🔍
 
 ---
