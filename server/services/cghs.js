@@ -107,12 +107,18 @@ function findRate(itemCode, itemName, city) {
         // Bidirectional Substring Match
         const substringMatches = cghsRates.filter(r => {
             const rateName = r.name.toLowerCase();
-            return normalizedItem.includes(rateName) || rateName.includes(normalizedItem);
+            // SAFETY: Ignore very short rate names for substring matching to prevent false positives like "A", "By"
+            if (rateName.length < 3) return false;
+
+            const match = normalizedItem.includes(rateName) || rateName.includes(normalizedItem);
+            return match;
         });
 
         if (substringMatches.length > 0) {
+            // Sort by length - longest match is usually the most specific and correct one
             substringMatches.sort((a, b) => b.name.length - a.name.length);
             baseMatch = substringMatches[0];
+            console.log(`[CGHS Match] Substring Match: "${normalizedItem}" matched "${baseMatch.name}"`);
         }
 
         // Fuzzy Name Match Fallback
@@ -134,6 +140,7 @@ function findRate(itemCode, itemName, city) {
 
             if (minDistance <= threshold) {
                 baseMatch = bestFuzzyMatch;
+                console.log(`[CGHS Match] Fuzzy Match: "${normalizedItem}" matched "${baseMatch.name}" (Dist: ${minDistance})`);
             }
         }
     }

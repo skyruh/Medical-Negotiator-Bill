@@ -13,6 +13,8 @@ server/uploads/
 server/data/
 server/test_match.js
 server/test_tier.js
+server/test_debug.js
+server/test_debug_single.js
 
 # Logs
 *.log
