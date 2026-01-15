@@ -69,11 +69,18 @@ function findRate(itemCode, itemName) {
 
     const normalizedItem = itemName.toLowerCase().replace(/\s+/g, ' ').replace(/[.]+$/, '').trim();
 
-    // 2. Exact Name Match (substring check as naive heuristic can be dangerous, strict equality preferred for "Exact", but "includes" is safer for partial titles)
-    // Let's stick to the previous "includes" heuristic but prioritize it after code.
-    const exactMatches = cghsRates.filter(r => r.name.toLowerCase().includes(normalizedItem));
-    if (exactMatches.length > 0) {
-        return exactMatches[0];
+    // 2. Bidirectional Substring Match
+    // Matches if "CBC" is in "Complete Haemogram/CBC" OR "Complete Haemogram/CBC" is in "CBC" (unlikely)
+    // We prioritize the longest matching rate name to avoid matching "Blood" to "Blood Sugar"
+    const substringMatches = cghsRates.filter(r => {
+        const rateName = r.name.toLowerCase();
+        return normalizedItem.includes(rateName) || rateName.includes(normalizedItem);
+    });
+
+    if (substringMatches.length > 0) {
+        // Sort by length - longest match is usually the most specific and correct one
+        substringMatches.sort((a, b) => b.name.length - a.name.length);
+        return substringMatches[0];
     }
 
     // 3. Fuzzy Name Match
@@ -83,6 +90,7 @@ function findRate(itemCode, itemName) {
 
     for (const rate of cghsRates) {
         const rateName = rate.name.toLowerCase();
+        // Skip completely different length strings to save time
         if (Math.abs(rateName.length - normalizedItem.length) > 10) continue;
 
         const dist = levenshtein(normalizedItem, rateName);
