@@ -110,6 +110,9 @@ npm run dev
 Built with invalid heart for better healthcare transparency.
 
 *   [Skyruh](https://github.com/skyruh) - Lead Developer
+*   [gauranshi1707](https://github.com/gauranshi1707) - Lead Developer
+*   [VanshikaTiwari11](https://github.com/VanshikaTiwari11) - Lead Developer
+*   [codewithsuhanii](https://github.com/codewithsuhanii) - Lead Developer
 
 ---
 <div align="center">
