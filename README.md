@@ -107,12 +107,13 @@ npm run dev
 
 ## 👥 Contributors
 
-Built with invalid heart for better healthcare transparency.
+Built with ❤️ for better healthcare transparency.
 
-*   [Skyruh](https://github.com/skyruh) - Lead Developer
-*   [gauranshi1707](https://github.com/gauranshi1707) - Lead Developer
-*   [VanshikaTiwari11](https://github.com/VanshikaTiwari11) - Lead Developer
-*   [codewithsuhanii](https://github.com/codewithsuhanii) - Lead Developer
+*   [Skyruh](https://github.com/skyruh) - **Project Lead & AI Engineer** 🧠
+*   [gauranshi1707](https://github.com/gauranshi1707) - **Frontend Architect** 🎨
+*   [VanshikaTiwari11](https://github.com/VanshikaTiwari11) - **Backend Specialist** ⚙️
+*   [codewithsuhanii](https://github.com/codewithsuhanii) - **UI/UX Designer** ✨
+*   [YOUR_NAME_HERE](https://github.com/yourusername) - **Research & QA** 🔍
 
 ---
 <div align="center">
