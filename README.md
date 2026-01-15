@@ -3,13 +3,13 @@
 # 🏥 MedBill AI
 ### *Your Personal Medical Bill Auditor & Negotiator*
 
-![React](https://img.shields.io/badge/Frontend-React-61DAFB?style=for-the-badge&logo=react&logoColor=black)
+![React](https://img.shields.io/badge/Frontend-React%20%2B%20Vite-61DAFB?style=for-the-badge&logo=react&logoColor=black)
 ![Node.js](https://img.shields.io/badge/Backend-Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)
-![Gemini AI](https://img.shields.io/badge/Powered%20By-Google%20Gemini-8E75B2?style=for-the-badge&logo=google&logoColor=white)
+![Gemini AI](https://img.shields.io/badge/Powered%20By-Google%20Gemini%202.0-8E75B2?style=for-the-badge&logo=google&logoColor=white)
 ![Hackathon](https://img.shields.io/badge/Status-Hackathon%20Ready-success?style=for-the-badge)
 
 <p align="center">
-  <img src="https://via.placeholder.com/800x400?text=MedBill+AI+Demo+Dashboard" alt="MedBill AI Dashboard" />
+  <img src="https://via.placeholder.com/800x400?text=MedBill+AI+Dashboard+v2.0" alt="MedBill AI Dashboard" />
 </p>
 
 </div>
@@ -19,7 +19,7 @@
 ## 😤 The Problem
 Medical billing is complex, opaque, and often riddled with errors. Patients frequently overpay because they can't verify:
 1.  **Complexity**: Medical codes (CPT/ICD) are intentionally confusing.
-2.  **Opacity**: Prices vary wildly between hospitals for the *same* procedure.
+2.  **Opacity**: Prices vary wildly between hospitals, often exceeding government caps.
 3.  **Errors**: Up to **80%** of medical bills contain errors or overcharges.
 
 ## 💡 The Solution
@@ -31,20 +31,27 @@ Medical billing is complex, opaque, and often riddled with errors. Patients freq
 
 ## ✨ Key Features
 
-*   **📄 Universal Parsing**: Upload any medical bill (PDF, JPG, PNG) – even scanned or crumped ones.
-*   **🧠 Gemini-Powered Intelligence**: Uses advanced vision + text multimodal AI to extract line items with high precision.
-*   **⚖️ Rate Benchmarking**: Automatically compares charged amounts against the **Central Government Health Scheme (CGHS)** rate card.
-*   **🚩 Discrepancy Detection**: Instantly highlights potential overcharges in a clear, easy-to-read report.
-*   **🔒 Privacy First**: Your data is processed securely.
+### 🧠 **AI-Powered Analysis**
+*   **Multimodal Parsing**: Upload any bill (PDF, JPG, PNG) – our AI reads it like a human, handling crumped papers and low-light scans.
+*   **Real-Time Streaming**: Watch the analysis happen live. No more "loading spinners" – status updates stream directly from the AI brain to your screen.
+
+### 💰 **Smart Savings & Calculations**
+*   **Tier-Based Pricing**: Automatically adjusts rates based on the hospital's city (Tier 1 vs Tier 2/3) to ensure 100% accurate benchmarking.
+*   **"Fair Bill Amount"**: We don't just show you the discrepancy; we calculate exactly what you *should* have paid.
+*   **Visual Savings Chart**: A dynamic horizontal bar chart visually demonstrates how much of your bill is "Fair" vs "Overcharge".
+
+### 🎨 **Premium Experience**
+*   **Modern Glassmorphism UI**: A beautiful, translucent interface designed to look professional and trustworthy.
+*   **Dynamic Edit Mode**: AI make a mistake? No problem. Edit line items or change the city directly in the UI and watch the savings recalcluate instantly.
 
 ---
 
 ## 🏗️ Tech Stack
 
-*   **Frontend**: React (Vite) – *Fast, responsive UI.*
-*   **Backend**: Node.js (Express) – *Robust API handling.*
-*   **AI Engine**: Google Gemini API (gemini-2.5-flash) – *The brain behind the parsing.*
-*   **Styling**: Vanilla CSS – *Clean, custom, lightweight.*
+*   **Frontend**: React (Vite) + Glassmorphism CSS
+*   **Backend**: Node.js (Express) with NDJSON Streaming
+*   **AI Engine**: Google Gemini API (`gemini-2.5-flash`)
+*   **Database**: JSON-based CGHS Rate Card (Fast In-Memory Lookup)
 
 ---
 
@@ -98,10 +105,11 @@ npm run dev
 
 ## 📸 How It Works
 
-1.  **Upload**: User drags & drops a hospital bill.
-2.  **Analyze**: System sends file to backend -> Gemini AI extracts structural data + prices.
-3.  **Verify**: Backend compares extracted prices with `super_speciality_rates.json`.
-4.  **Report**: Frontend displays a "Flagged Items" table showing the difference between *Billed Amount* and *Fair Rate*.
+1.  **Select City**: Choose the city where treatment occurred to get accurate Tier rates.
+2.  **Upload**: Drag & drop your hospital bill.
+3.  **Real-Time Scan**: Watch the AI "Scan" your document and match items.
+4.  **Review Report**: See the "Fair Price" vs "Billed Price" graph.
+5.  **Edit & Recalculate**: Correct any details if needed and see new savings immediately.
 
 ---
 
