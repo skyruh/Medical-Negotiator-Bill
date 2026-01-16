@@ -117,13 +117,13 @@ npm run dev
 
 Built with ❤️ for better healthcare transparency.
 
-*   [Skyruh](https://github.com/skyruh) - **Project Lead & AI Engineer** 🧠
-*   [gauranshi1707](https://github.com/gauranshi1707) - **Frontend Architect** 🎨
-*   [VanshikaTiwari11](https://github.com/VanshikaTiwari11) - **UI/UX Designer** ✨
-*   [codewithsuhanii](https://github.com/codewithsuhanii) - **Backend Specialist** ⚙️
-*   [07arnavjain-collab](https://github.com/07arnavjain-collab) - **Research & QA** 🔍
+*   [Skyruh](https://github.com/skyruh) 
+*   [gauranshi1707](https://github.com/gauranshi1707) 
+*   [VanshikaTiwari11](https://github.com/VanshikaTiwari11)
+*   [codewithsuhanii](https://github.com/codewithsuhanii) 
+*   [07arnavjain-collab](https://github.com/07arnavjain-collab)
 
 ---
 <div align="center">
-  <sub>Built for the Google AI Hackathon 2026.</sub>
+  <sub>Built for the Innovate 3.0 AI Hackathon 2026.</sub>
 </div>
