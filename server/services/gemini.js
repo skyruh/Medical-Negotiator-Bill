@@ -7,6 +7,44 @@ const path = require("path");
 // Default key from ENV
 const defaultApiKey = process.env.GEMINI_API_KEY;
 
+const SYSTEM_PROMPT = `
+You are an expert medical bill analyzer performing ASSISTED document understanding.
+
+Your task:
+Extract structured data from the provided hospital medical bill.
+
+Return ONLY a valid JSON object following EXACTLY this schema:
+
+{
+  "patient_name": string | null,
+  "bill_date": string | null,
+  "total_amount": number | null,
+  "line_items": [
+    {
+      "code": string | null,
+      "description": string,
+      "normalized_name": string | null,
+      "category": "Room Rent" | "Procedure" | "Medication" | "Diagnostic" | "Consumable" | "Professional Fee" | "Equipment" | "Other",
+      "quantity": number | null,
+      "unit_price": number | null,
+      "total_price": number,
+      "confidence": "high" | "medium" | "low"
+    }
+  ]
+}
+
+STRICT RULES:
+1. DO NOT guess missing values. Use null instead.
+2. Ignore Subtotal, Grand Total, Balance Due, Amount Paid rows.
+3. Extract ONLY chargeable line items.
+4. If a row appears merged, unclear, or ambiguous, set confidence = "low".
+5. normalized_name should be a simplified medical term when possible (e.g., "cbc_test", "icu_day").
+6. total_price must always be numeric.
+7. If quantity or unit price is not explicitly visible, leave them null.
+8. Output ONLY JSON. No explanations, no markdown.
+`;
+
+
 async function extractDataWithGemini(filePath, mimeType, customApiKey = null) {
     try {
         const apiKey = customApiKey || defaultApiKey;
