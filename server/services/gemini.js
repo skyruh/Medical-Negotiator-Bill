@@ -52,6 +52,12 @@ async function extractDataWithGemini(filePath, mimeType, customApiKey = null) {
             throw new Error("API Key is missing. Please provide a Gemini API Key.");
         }
 
+        // Debug: Log masked key
+        const maskedKey = apiKey.length > 10
+            ? `${apiKey.substring(0, 8)}...${apiKey.substring(apiKey.length - 4)}`
+            : "INVALID_KEY_LENGTH";
+        console.log(`[GEMINI] Using API Key: ${maskedKey} (Source: ${customApiKey ? "User-Provided" : "Env Var"})`);
+
         // Initialize dynamically
         const genAI = new GoogleGenerativeAI(apiKey);
         const fileManager = new GoogleAIFileManager(apiKey);
