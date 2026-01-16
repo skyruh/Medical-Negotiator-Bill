@@ -10,6 +10,7 @@ function App() {
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
   const [city, setCity] = useState("Delhi"); // Default city
+  const [apiKey, setApiKey] = useState(localStorage.getItem("gemini_api_key") || ""); // Persist Key
 
   const handleUploadStart = () => {
     setLoading(true);
@@ -42,6 +43,35 @@ function App() {
         <h1>Medical Bill Analyzer</h1>
         <p>Ensure you pay fair prices by comparing with CGHS rates</p>
       </header>
+
+      {/* API Key Input Section */}
+      <div className="card" style={{ marginBottom: '1rem', padding: '1rem', background: '#f8fafc' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+          <label style={{ fontSize: '0.9rem', fontWeight: 'bold', color: '#475569' }}>
+            🔑 Use Your Own Gemini API Key (Optional)
+          </label>
+          <input
+            type="password"
+            placeholder="Enter valid Gemini API Key (starts with AIza...)"
+            value={apiKey}
+            onChange={(e) => {
+              const newKey = e.target.value;
+              setApiKey(newKey);
+              localStorage.setItem("gemini_api_key", newKey);
+            }}
+            style={{
+              padding: '0.5rem',
+              borderRadius: '6px',
+              border: '1px solid #cbd5e1',
+              fontSize: '0.9rem',
+              width: '100%'
+            }}
+          />
+          <p style={{ fontSize: '0.8rem', color: '#64748b', margin: 0 }}>
+            If provided, this key will be used for analysis. It is not stored on our servers.
+          </p>
+        </div>
+      </div>
 
       {error && (
         <div className="card" style={{ background: '#fee2e2', borderColor: '#f87171', color: '#991b1b', marginBottom: '1rem', textAlign: 'center' }}>
@@ -94,6 +124,7 @@ function App() {
 
           <FileUpload
             city={city} // Pass city prop
+            apiKey={apiKey} // Pass apiKey prop
             onProgress={handleProgress}
             onUploadStart={handleUploadStart}
             onUploadSuccess={handleUploadSuccess}

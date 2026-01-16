@@ -149,7 +149,12 @@ app.post("/api/analyze", upload.single("bill"), async (req, res) => {
 
         // Step 2: Extract data
         sendUpdate("🤖 AI Extracting Medical Data...");
-        const extractedData = await extractDataWithGemini(filePath, req.file.mimetype);
+
+        // Extract Custom API Key from headers (if provided)
+        // Header names are lowercased by Express
+        const customApiKey = req.headers['x-gemini-api-key'];
+
+        const extractedData = await extractDataWithGemini(filePath, req.file.mimetype, customApiKey);
 
         // Step 3: Notify Comparison
         const city = req.body.city || "Delhi";

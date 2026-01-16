@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 
-const FileUpload = ({ onUploadStart, onUploadSuccess, onError, onProgress, city }) => {
+const FileUpload = ({ onUploadStart, onUploadSuccess, onError, onProgress, city, apiKey }) => {
     // ... (keep existing state/refs)
     const [dragActive, setDragActive] = useState(false);
     const inputRef = useRef(null);
@@ -50,9 +50,15 @@ const FileUpload = ({ onUploadStart, onUploadSuccess, onError, onProgress, city 
         formData.append('bill', file);
         formData.append('city', city);
 
+        const headers = {};
+        if (apiKey) {
+            headers['x-gemini-api-key'] = apiKey;
+        }
+
         try {
             const response = await fetch('/api/analyze', {
                 method: 'POST',
+                headers: headers,
                 body: formData,
             });
 
