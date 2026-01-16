@@ -15,9 +15,16 @@ app.use(cors());
 app.use(express.json());
 
 // Ensure uploads directory exists
-const uploadDir = path.join(__dirname, "uploads");
+// Adjust upload directory for Vercel (read-only FS except /tmp)
+const isVercel = process.env.VERCEL === '1';
+const uploadDir = isVercel ? '/tmp' : path.join(__dirname, "uploads");
+
 if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir);
+    try {
+        fs.mkdirSync(uploadDir);
+    } catch (error) {
+        console.error("Error creating upload directory:", error);
+    }
 }
 
 const storage = multer.diskStorage({
@@ -205,6 +212,11 @@ app.post("/api/reanalyze", async (req, res) => {
     }
 });
 
-app.listen(port, '0.0.0.0', () => {
-    console.log(`Server running at http://localhost:${port}`);
-});
+// For Vercel, we export the app. For local, we listen on a port.
+if (process.env.NODE_ENV !== 'production' && !isVercel) {
+    app.listen(port, () => {
+        console.log(`Server running at http://localhost:${port}`);
+    });
+}
+
+module.exports = app;
