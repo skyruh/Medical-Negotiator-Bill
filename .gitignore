@@ -10,7 +10,6 @@ build/
 
 # Uploads and Data
 server/uploads/
-server/data/
 server/test_match.js
 server/test_tier.js
 server/test_debug.js
