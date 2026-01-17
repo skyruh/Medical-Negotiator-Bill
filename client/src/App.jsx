@@ -48,7 +48,7 @@ function App() {
       <div className="card" style={{ marginBottom: '1rem', padding: '1rem', background: '#f8fafc' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
           <label style={{ fontSize: '0.9rem', fontWeight: 'bold', color: '#475569' }}>
-            🔑 Use Your Own Gemini API Key (Optional)
+            🔑 Enter Your Gemini API Key
           </label>
           <input
             type="password"
